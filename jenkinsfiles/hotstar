@@ -102,7 +102,7 @@ pipeline {
             steps {
                     sh '''
                         kubectl apply -f kubernetes-files/deployment.yml
-                        kubectl apply -f kubernetes-files/deployment.yml
+                        kubectl apply -f kubernetes-files/service.yml
                     '''
                 }
             }
