@@ -101,12 +101,11 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 withCredentials([string(credentialsId: 'my-kubeconfig-text', variable: 'KUBECONFIG_CONTENT')]) {
-                    // Write secret text to kubeconfig file
                     sh '''
-                        echo "$KUBECONFIG_CONTENT" > kubeconfig.yaml
+                        printf "%s" "$KUBECONFIG_CONTENT" > kubeconfig.yaml
                         export KUBECONFIG=kubeconfig.yaml
-                        kubectl apply -f deployment.yml
-                        kubectl apply -f service.yml
+                        kubectl apply -f kubernetes-files/deployment.yml
+                        kubectl apply -f kubernetes-files/service.yml
                     '''
                 }
             }
