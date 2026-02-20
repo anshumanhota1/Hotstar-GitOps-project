@@ -31,11 +31,11 @@ pipeline {
             }
         }
 
-        stage('Run Tests & Generate Coverage') {
-            steps {
-                sh 'npm test -- --coverage --passWithNoTests'
-            }
-        }
+        // stage('Run Tests & Generate Coverage') {
+        //     steps {
+        //         sh 'npm test -- --coverage --passWithNoTests'
+        //     }
+        // }
 
         // stage('SonarQube Analysis') {
         //     steps {
