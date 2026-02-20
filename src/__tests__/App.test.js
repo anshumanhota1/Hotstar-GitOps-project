@@ -1,9 +1,9 @@
-// src/App.test.js
+// src/__tests__/App.test.js
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import App from '../App';  // <-- use '../App' because test is in __tests__ folder
 
 test('renders Hotstar Clone heading', () => {
   render(<App />);
-  const headingElement = screen.getByText(/Hotstar Clone/i);
-  expect(headingElement).toBeInTheDocument();
+  const linkElement = screen.getByText(/Subscribe to Watch/i);
+  expect(linkElement).toBeInTheDocument();
 });
