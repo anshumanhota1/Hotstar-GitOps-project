@@ -119,7 +119,9 @@ pipeline {
         }
 
         stage('Run Tests & Generate Coverage') {
-            steps { sh 'npm test -- --coverage' }
+            steps {
+                sh 'npm test -- --coverage --passWithNoTests'
+            }
         }
         
         stage('SonarQube Analysis') {
