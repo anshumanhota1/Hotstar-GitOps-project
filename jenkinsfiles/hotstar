@@ -118,6 +118,10 @@ pipeline {
             }
         }
 
+        stage('Run Tests & Generate Coverage') {
+            steps { sh 'npm test -- --coverage' }
+        }
+        
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -128,9 +132,8 @@ pipeline {
                               -Dsonar.sources=src \
                               -Dsonar.host.url=$SONAR_HOST_URL \
                               -Dsonar.login=$SONAR_AUTH_TOKEN \
-                              -Dsonar.language=js \
-                              -Dsonar.sourceEncoding=UTF-8 \
-                              -Dsonar.coverage.jacoco.xmlReportPaths=
+                              -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+                              -Dsonar.sourceEncoding=UTF-8
                         '''
                     }
                 }
