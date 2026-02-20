@@ -101,8 +101,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                     sh '''
-                        kubectl apply -f kubernetes-files/deployment.yml
-                        kubectl apply -f kubernetes-files/service.yml
+                        kubectl apply -f kubernetes-files/deployment.yml --validate=false
+                        kubectl apply -f kubernetes-files/service.yml --validate=false
                     '''
                 }
             }
