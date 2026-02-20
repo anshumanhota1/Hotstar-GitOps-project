@@ -12,24 +12,24 @@ pipeline {
 
     stages {
 
-        stage('Cleaning Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
+        // stage('Cleaning Workspace') {
+        //     steps {
+        //         cleanWs()
+        //     }
+        // }
 
-        stage('Checkout from Git') {
-            steps {
-                git branch: 'master',
-                    url: 'https://github.com/anshumanhota1/Hotstar-GitOps-project.git'
-            }
-        }
+        // stage('Checkout from Git') {
+        //     steps {
+        //         git branch: 'master',
+        //             url: 'https://github.com/anshumanhota1/Hotstar-GitOps-project.git'
+        //     }
+        // }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
+        // stage('Install Dependencies') {
+        //     steps {
+        //         sh 'npm install'
+        //     }
+        // }
 
         // stage('Run Tests & Generate Coverage') {
         //     steps {
@@ -97,7 +97,7 @@ pipeline {
         //     }
         // }
 
-    stages {
+    
         stage('Deploy to Kubernetes') {
             steps {
                 withCredentials([string(credentialsId: 'my-kubeconfig-text', variable: 'KUBECONFIG_CONTENT')]) {
@@ -111,7 +111,7 @@ pipeline {
                 }
             }
         }
-    }
+    
 
         stage('Cleanup Local Docker Images') {
             steps {
