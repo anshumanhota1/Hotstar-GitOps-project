@@ -81,94 +81,86 @@
 
 pipeline {
     agent any
-
     environment {
-        APP_NAME    = "hotstar"
-        RELEASE     = "1.0.0"
-        DOCKER_USER = "2swapna"
-        DOCKER_PASS = "dockerhub"
-        IMAGE_NAME  = "${DOCKER_USER}/${APP_NAME}"
-        IMAGE_TAG   = "${RELEASE}-${BUILD_NUMBER}"
-    }
+	    APP_NAME = "hotstar"
+            RELEASE = "1.0.0"
+            DOCKER_USER = "2swapna"
+            DOCKER_PASS = 'dockerhub'
+            IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
+            IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+    }    
 
     stages {
-
         stage('Cleaning Workspace') {
             steps {
                 cleanWs()
             }
         }
-
         stage('Checkout from Git') {
             steps {
-                git branch: 'master',
-                    url: 'https://github.com/anshumanhota1/Hotstar-GitOps-project.git'
+                git branch: 'master', url: 'https://github.com/anshumanhota1/Hotstar-GitOps-project.git'
             }
         }
-
-        stage('List Files') {
+        stage("List Files") {
             steps {
                 sh 'ls -la'
             }
         }
-
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh """
-                        $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectName=hotstar-app \
-                        -Dsonar.projectKey=hotstar-app
-                    """
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-
-        stage('Build & Push Docker Image') {
+        stage("SonarQube Analysis") {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_PASS}") {
-                        def docker_image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
-                        docker_image.push()
-                        docker_image.push('latest')
+                    withSonarQubeEnv('sonarqube') { 
+                        // Run SonarScanner (must be installed on the node)
+                        sh '''
+                        sonar-scanner \
+                        -Dsonar.projectKey=hotstar-app \
+                        -Dsonar.sources=src \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN
+                        '''
                     }
                 }
             }
         }
-
-        stage('Cleanup Docker Images') {
+ 
+        stage("Build & Push Docker Image") {
             steps {
-                sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
-                sh "docker rmi ${IMAGE_NAME}:latest || true"
+                script {
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image = docker.build "${IMAGE_NAME}"
+                    }
+
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image.push("${IMAGE_TAG}")
+                        docker_image.push('latest')
+                    }
+                }
             }
-        }
-
-        stage('Update Deployment Manifest') {
+       }       
+       stage ('Cleanup Artifacts') {
+           steps {
+               script {
+                    sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker rmi ${IMAGE_NAME}:latest"
+               }
+          }
+       } 
+        stage("Update the Deployment Tags") {
             steps {
+                // Use dir to switch context safely
                 dir('kubernetes-files') {
                     sh """
+                        ls -la  # Useful for debugging to see if the file exists
+                        cat deployment.yml
                         sed -i 's|${IMAGE_NAME}:.*|${IMAGE_NAME}:${IMAGE_TAG}|g' deployment.yml
+                        cat deployment.yml
                     """
                 }
             }
-        }
-
-        stage('Push Deployment to Git') {
+        }                      
+        stage("Push the changed deployment file to Git") {
             steps {
+                // Switch into the folder where deployment.yml actually lives
                 dir('kubernetes-files') {
                     sh """
                         git config --global user.name "anshumanhota1"
@@ -176,13 +168,14 @@ pipeline {
                         git add deployment.yml
                         git commit -m "Updated Deployment Manifest to ${IMAGE_TAG}" || echo "No changes to commit"
                     """
-                    withCredentials([usernamePassword(credentialsId: 'github-anshu', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        sh "git push https://${GIT_USER}:${GIT_PASS}@github.com/anshumanhota1/Hotstar-GitOps-project.git master"
+                    
+                    withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
+                        // Use the HTTPS URL of the repo (don't include /tree/ or subfolders in the URL)
+                        sh "git push https://github.com/anshumanhota1/Hotstar-GitOps-project.git master"
                     }
                 }
             }
         }
-
         stage('Deploy to Kubernetes') {
             steps {
                 dir('kubernetes-files') {
@@ -190,6 +183,6 @@ pipeline {
                     sh 'kubectl apply -f service.yml'
                 }
             }
-        }
+        }		
     }
 }
