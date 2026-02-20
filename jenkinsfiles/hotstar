@@ -9,7 +9,7 @@ pipeline {
 //         }
 //         stage('Checkout from Git') {
 //             steps {
-//                 git branch: 'master', url: 'https://github.com/arumullayaswanth/Hotstar-GitOps-project.git'
+//                 git branch: 'master', url: 'https://github.com/anshumanhota1/Hotstar-GitOps-project.git'
 //             }
 //         }
 //         stage("List Files") {
@@ -98,7 +98,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'master', url: 'https://github.com/Swapna-09/Hotstar-GitOps-project.git'
+                git branch: 'master', url: 'https://github.com/anshumanhota1/Hotstar-GitOps-project.git'
             }
         }
         stage("List Files") {
@@ -168,18 +168,28 @@ pipeline {
                 // Switch into the folder where deployment.yml actually lives
                 dir('kubernetes-files') {
                     sh """
-                        git config --global user.name "Swapna-09"
-                        git config --global user.email "Swapna-09@gmail.com"
+                        git config --global user.name "anshumanhota1"
+                        git config --global user.email "anshumanhota1@gmail.com"
                         git add deployment.yml
                         git commit -m "Updated Deployment Manifest to ${IMAGE_TAG}" || echo "No changes to commit"
                     """
                     
                     withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
                         // Use the HTTPS URL of the repo (don't include /tree/ or subfolders in the URL)
-                        sh "git push https://github.com/Swapna-09/Hotstar-GitOps-project.git master"
+                        sh "git push https://github.com/anshumanhota1/Hotstar-GitOps-project.git master"
                     }
                 }
             }
-        }		
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                            sh 'kubectl delete --all pods'
+                            sh 'kubectl apply -f deployment.yml'
+                            sh 'kubectl apply -f service.yml'
+                        }
+                    }
+                }
+            }
     }
 }
