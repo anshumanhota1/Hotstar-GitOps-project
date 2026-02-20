@@ -174,7 +174,7 @@ pipeline {
                         git commit -m "Updated Deployment Manifest to ${IMAGE_TAG}" || echo "No changes to commit"
                     """
                     
-                    withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
+                    withCredentials([gitUsernamePassword(credentialsId: 'github-anshu', gitToolName: 'Default')]) {
                         // Use the HTTPS URL of the repo (don't include /tree/ or subfolders in the URL)
                         sh "git push https://github.com/anshumanhota1/Hotstar-GitOps-project.git master"
                     }
